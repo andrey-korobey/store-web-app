@@ -3,7 +3,7 @@ import os
 import random
 from pathlib import Path
 
-from web_app.models import Product, Location, Inventory
+from flask_app.models import Product, Location, Inventory
 
 
 def generate_data():
@@ -51,10 +51,11 @@ def load_data_from_json(db, filename: str) -> None:
     :param filename:
     :return:
     """
-    if not os.path.isfile(filename):
-        print(f"Файл {filename} не найден")
+    path = os.path.join(Path(__file__).parent.absolute(), filename)
+    if not os.path.isfile(path):
+        print(f"Файл {path} не найден")
         return
-    with open(filename, encoding="utf-8") as file:
+    with open(path, encoding="utf-8") as file:
         data = json.load(file)
 
     products = data.get("products")

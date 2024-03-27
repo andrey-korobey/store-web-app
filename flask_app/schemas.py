@@ -1,7 +1,7 @@
 from marshmallow import fields, Schema, validates_schema, ValidationError
 from marshmallow.validate import Length, Range
 
-from web_app.db_services import inventory_exists
+from flask_app.db_services import inventory_exists
 
 
 class ProductSchema(Schema):

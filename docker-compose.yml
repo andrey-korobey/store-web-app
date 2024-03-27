@@ -1,0 +1,19 @@
+services:
+  database:
+    image: mysql
+    container_name: store-database
+    restart: always
+    env_file: .env
+
+  web_server:
+    build: .
+    container_name: store-web-server
+    restart: always
+    env_file: .env
+    volumes:
+      - ./flask_app/:/flask_app/:ro
+      - ./frontend/:/usr/share/nginx/html/static/:ro
+    ports:
+      - 80:80
+    depends_on:
+      - database

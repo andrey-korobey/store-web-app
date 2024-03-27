@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from web_app.models import Product, Location, Inventory, db
+from flask_app.models import Product, Location, Inventory, db
 
 
 def create_instance(model: db.Model, valid_data: dict) -> db.Model:

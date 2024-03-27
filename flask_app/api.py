@@ -3,7 +3,7 @@ from flask_restful import Api, Resource
 from marshmallow import Schema, ValidationError
 from werkzeug.exceptions import NotFound
 
-from web_app.db_services import (
+from flask_app.db_services import (
     create_instance,
     get_products,
     get_inventory_by_id,
@@ -11,8 +11,8 @@ from web_app.db_services import (
     update_instance,
     get_locations,
 )
-from web_app.models import db, Product, Inventory, Location
-from web_app.schemas import ProductSchema, InventorySchema, LocationSchema
+from flask_app.models import db, Product, Inventory, Location
+from flask_app.schemas import ProductSchema, InventorySchema, LocationSchema
 
 api = Api()
 
