@@ -13,6 +13,7 @@ class Product(db.Model):
     price = db.Column(
         db.Float(precision=2, asdecimal=True, decimal_return_scale=2), nullable=False
     )
+    inventories = db.relationship("Inventory", backref="product", lazy="joined")
 
     @hybrid_property
     def amount(self):
@@ -30,6 +31,7 @@ class Location(db.Model):
     name = db.Column(db.String(50), nullable=False)
 
 
+
 class Inventory(db.Model):
     __tablename__ = "inventory"
     __table_args__ = (db.UniqueConstraint("product_id", "location_id"),)
@@ -42,10 +44,6 @@ class Inventory(db.Model):
         db.Integer, db.ForeignKey("locations.id", ondelete="CASCADE"), nullable=False
     )
     quantity = db.Column(db.Integer, nullable=False)
-
-    product = db.Relationship(
-        Product, backref="inventories", single_parent=True, lazy="joined"
-    )
     location = db.Relationship(
-        Location, backref="inventories", single_parent=True, lazy="joined"
+        Location, backref="inventories", lazy="joined"
     )
