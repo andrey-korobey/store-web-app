@@ -1,5 +1,7 @@
 from typing import List, Optional
 
+from flask_sqlalchemy.pagination import QueryPagination
+
 from flask_app.models import Product, Location, Inventory, db
 
 
@@ -24,24 +26,26 @@ def update_instance(instance: db.Model, data: dict) -> None:
     db.session.commit()
 
 
-def get_products(
-        search_text: Optional[str] = None,
-        order_field: Optional[str] = None,
-        order_direction: Optional[str] = None,
-) -> List[Product]:
-    """Функция возвращает список товаров из базы данных"""
-    query = db.session.query(Product).join(Inventory).group_by(Product.id)
+def get_paginated_products(
+        search: Optional[str] = None,
+        order_by: Optional[str] = None,
+        ordering: Optional[str] = None,
+        page: Optional[int] = None,
+        per_page: Optional[int] = None
+) -> QueryPagination:
+    """Функция получает список товаров из базы данных и возвращает объект QueryPagination"""
+    query = db.session.query(Product)
 
-    if search_text:
-        query = query.filter(Product.name.contains(search_text))
+    if search:
+        query = query.filter(Product.name.contains(search))
 
-    if order_field and (order_field in Product.__table__.columns.keys() or order_field == "amount"):
-        field = getattr(Product, order_field)
-        if order_direction and order_direction.lower() == "desc":
+    if order_by and (order_by in (*Product.__table__.columns.keys(), "amount")):
+        field = getattr(Product, order_by)
+        if ordering and ordering.lower() == "desc":
             field = field.desc()
         query = query.order_by(field)
 
-    return query.all()
+    return query.paginate(page=page, per_page=per_page, error_out=False)
 
 
 def get_locations() -> List[Location]:

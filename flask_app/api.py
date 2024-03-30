@@ -5,14 +5,14 @@ from werkzeug.exceptions import NotFound
 
 from flask_app.db_services import (
     create_instance,
-    get_products,
+    get_paginated_products,
     get_inventory_by_id,
     delete_instance,
     update_instance,
     get_locations,
 )
 from flask_app.models import db, Product, Inventory, Location
-from flask_app.schemas import ProductSchema, InventorySchema, LocationSchema
+from flask_app.schemas import ProductSchema, InventorySchema, LocationSchema, PaginateSchema, ProductsFilterSchema
 
 api = Api()
 
@@ -39,12 +39,17 @@ class ProductsResource(Resource, CreateMixin):
     schema = ProductSchema
 
     def get(self):
-        search_text = request.args.get("search")
-        order_field = request.args.get("column")
-        order_type = request.args.get("order")
-        products = get_products(search_text, order_field, order_type)
-        result = self.schema().dump(products, many=True)
+        try:
+            validated_data = ProductsFilterSchema().load(request.args.to_dict())
+        except ValidationError as ex:
+            return ex.messages, 400
+        paginate = get_paginated_products(**validated_data)
+        result = {
+            "products": self.schema().dump(paginate.items, many=True),
+            "paginate": PaginateSchema().dump(paginate),
+        }
         return result
+
 
 @api.resource("/api/locations")
 class LocationResource(Resource, CreateMixin):
@@ -56,7 +61,7 @@ class LocationResource(Resource, CreateMixin):
         return self.schema().dump(locations, many=True)
 
 
-@api.resource("/api/inventory/")
+@api.resource("/api/inventories")
 class InventoriesResource(Resource, CreateMixin):
     model = Inventory
     schema = InventorySchema
