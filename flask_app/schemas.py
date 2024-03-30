@@ -1,5 +1,4 @@
-from marshmallow import fields, Schema, validates_schema, ValidationError
-from marshmallow.validate import Length, Range
+from marshmallow import fields, Schema, validates_schema, ValidationError, validate
 
 from flask_app.db_services import inventory_exists
 
@@ -8,10 +7,10 @@ class ProductSchema(Schema):
     """Схема для сериализации/десериализации объекта Product"""
 
     id = fields.Integer(dump_only=True)
-    name = fields.String(required=True, validate=[Length(min=1)])
+    name = fields.String(required=True, validate=[validate.Length(min=1)])
     description = fields.String(required=True)
     price = fields.Decimal(
-        required=True, rounding=2, as_string=True, validate=[Range(min=0)]
+        required=True, rounding=2, as_string=True, validate=[validate.Range(min=0)]
     )
     inventories = fields.Nested("InventorySchema", dump_only=True, many=True)
     amount = fields.Integer(dump_only=True)
@@ -21,7 +20,7 @@ class LocationSchema(Schema):
     """Схема для сериализации/десериализации объекта Location"""
 
     id = fields.Integer(dump_only=True)
-    name = fields.String(required=True, validate=[Length(min=1)])
+    name = fields.String(required=True, validate=[validate.Length(min=1)])
 
 
 class InventorySchema(Schema):
@@ -41,3 +40,22 @@ class InventorySchema(Schema):
             raise ValidationError(
                 "Информация об остатках на этом складе уже существует"
             )
+
+
+class PaginateSchema(Schema):
+    """Схема для сериализации/десериализации объекта QueryPaginate"""
+    page = fields.Integer()
+    per_page = fields.Integer()
+    pages = fields.Integer()
+    total = fields.Integer()
+    has_next = fields.Boolean()
+    has_prev = fields.Boolean()
+
+
+class ProductsFilterSchema(Schema):
+    """Схема для валидации параметров запроса списка товаров"""
+    page = fields.Integer(validate=validate.Range(min=0), error="Значение должно быть больше 0")
+    per_page = fields.Integer(validate=validate.Range(min=0, error="Значение должно быть больше 0"))
+    order_by = fields.String()
+    ordering = fields.String(validate=validate.OneOf(["asc", "desc"], error="Значение должно быть asc или desc"))
+    search = fields.String()
