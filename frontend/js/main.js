@@ -2,7 +2,9 @@ const rowTemplate = $("#productRow").clone()
 const inventoriesTemplate = rowTemplate.find("#inventoryBlock").clone()
 const inventoryRowTemplate = inventoriesTemplate.find("#inventoryRow")
 const paginateTemplate = $("#paginationNav")
-let locationList = []
+const pageItemTemplate = paginateTemplate.find("li")
+
+let locationList = [];
 let url_params = new URLSearchParams(document.location.search)
 
 $(document).ready(function () {
@@ -55,6 +57,31 @@ function updateLocationSelectorOptions(selector, product) {
             selector.append(`<option value=${location.id}>${location.name}</option>`)
         }
     })
+}
+
+function getPages(paginate) {
+    let pages = new Array()
+    console.log(typeof pages)
+
+    if (paginate.page > 2) {
+        pages.push(1);
+        if (paginate.page > 3) pages.push("...")
+    }
+    if (paginate.has_prev) {
+        pages.push(paginate.page - 1)
+    }
+
+    pages.push(paginate.page)
+
+    if (paginate.has_next) {
+        pages.push(paginate.page + 1)
+    }
+
+    if (paginate.page < paginate.pages - 1) {
+        if (paginate.page < paginate.pages - 2) pages.push("...")
+        pages.push(paginate.pages)
+    }
+    return pages
 }
 
 // Обработчики событий
@@ -112,44 +139,39 @@ function showCreateInventoryForm() {
 }
 
 // Функции рендеринга элементов
-function setPageValue(container, id, value) {
-    let temp_url_params = new URLSearchParams(url_params)
-    let elem = container.find(`#${id}`)
-    temp_url_params.set("page", value)
-    elem.find("a.page-link").prop("href", "?" + temp_url_params.toString())
-    elem.find("a.value").text(value)
-}
 
+function renderPageItem(value, classes) {
+    let temp_url_params = new URLSearchParams(url_params)
+    let pageItem = pageItemTemplate.clone()
+
+    temp_url_params.set("page", value)
+
+    for (let cls of classes) {
+        pageItem.addClass(cls)
+    }
+
+    pageItem.find("a.page-link")
+        .prop("href", "?" + temp_url_params.toString())
+        .text(value)
+    console.log(pageItem)
+    return pageItem
+}
 
 function renderPagination(paginate) {
     let pagination = paginateTemplate.clone()
+    let paginationList = pagination.find("ul")
+    let pages = getPages(paginate)
 
-    setPageValue(pagination, "currentPageItem", paginate.page)
-
-    if (paginate.has_prev) {
-        setPageValue(pagination, "firstPageItem", 1)
-        setPageValue(pagination, "prevPageItem", paginate.page - 1)
-        setPageValue(pagination, "prevPageValueItem", paginate.page - 1)
-    } else {
-        pagination.find("#prevPageItem").addClass("disabled")
-        pagination.find("#prevPageValueItem").remove()
-        pagination.find("#prevPageSeparator").remove()
-        pagination.find("#firstPageItem").remove()
+    paginationList.empty()
+    for (let page of pages) {
+        let classes = []
+        if (typeof page !== "number") classes.push("disabled");
+        if (page === paginate.page) classes.push( "active");
+        paginationList.append(renderPageItem(page, classes));
     }
 
-    if (paginate.has_next) {
-        setPageValue(pagination, "nextPageValueItem", paginate.page + 1)
-        setPageValue(pagination, "nextPageItem", paginate.page + 1)
-        setPageValue(pagination, "lastPageItem", paginate.pages)
-    } else {
-        pagination.find("#nextPageItem").addClass("disabled")
-        pagination.find("#nextPageValueItem").remove()
-        pagination.find("#nextPageSeparator").remove()
-        pagination.find("#lastPageItem").remove()
-    }
     return pagination
 }
-
 
 function renderProductRow(product) {
     let row = rowTemplate.clone()
